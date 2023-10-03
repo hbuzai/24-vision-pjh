@@ -1,4 +1,4 @@
-CMakeFiles/test.dir/main.cpp.o: /home/ladistra/文档/01/main.cpp \
+CMakeFiles/test.dir/main.cpp.o: /home/ladistra/24-vision-pjh/01/main.cpp \
  /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \

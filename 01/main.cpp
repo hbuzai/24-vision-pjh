@@ -18,14 +18,22 @@ int main()
 
     Mat frame,channels[3],binary,Gaussian;
 
+    Mat cameraMatrix = (Mat_<double>(3, 3) << 1576.70020, 0.000000000000, 635.46084, 0.000000000000, 1575.77707, 529.83878, 0.000000000000, 0.000000000000, 1.000000000000);
+    Mat distCoeffs = (Mat_<double>(1, 5) << -0.08325, 0.21277, 0.00022, 0.00033, 0);
+    Mat rvec, tvec;
+
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
     Rect boundRect;
     RotatedRect box;
-    vector<Point2f> boxPts(4);
+    vector<Point2f> point2d;
+    vector<Point3f> Points3d;
+    Point3f point3f;
+
     
     for (;;) {
         Rect point_array[20];
+
         video >> frame;
         if (frame.empty()) {
             break;
@@ -34,6 +42,7 @@ int main()
         threshold(channels[1], binary, kThreashold, kMaxVal, 0);
         GaussianBlur(binary, Gaussian, kGaussianBlueSize, 0);
         findContours(Gaussian, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE);
+
         int index = 0;
         for (int i = 0; i < contours.size(); i++) {
             //box = minAreaRect(Mat(contours[i]));
@@ -52,7 +61,8 @@ int main()
                 cout << msg << endl;
                 //continue;
             }
-        }        
+        } 
+
         int point_near[2];
         int min = 10000;
         for (int i = 0; i < index-1; i++)
@@ -84,13 +94,53 @@ int main()
                 line(frame, p[i%4], p[(i+1)%4], Scalar(0, 255, 0), 2);
             }      
             line(frame,p[0],p[2],Scalar(255,0,0),2);
-            line(frame,p[1],p[3],Scalar(255,0,0),2);      
+            line(frame,p[1],p[3],Scalar(255,0,0),2);     
+            point2d.push_back(p[0]); 
+            point2d.push_back(p[1]); 
+            point2d.push_back(p[2]); 
+            point2d.push_back(p[3]); 
         }
         catch (const char* msg)
         {
             cout << msg << endl;
             //continue;
         }
+        //获取三维坐标点
+       
+            // 原点（左下角）
+            point3f.x = 0;
+            point3f.y = 0;
+            point3f.z = 0;
+            Points3d.push_back(point3f);
+            // 左上角
+            point3f.x = 0;
+            point3f.y = 5.5;
+            point3f.z = 0;
+            Points3d.push_back(point3f);
+            // 右上角
+            point3f.x = 14.0;
+            point3f.y = 5.5;
+            point3f.z = 0.0;
+            Points3d.push_back(point3f);
+            // 右下角
+            point3f.x = 14;
+            point3f.y = 0;
+            point3f.z = 0;
+            Points3d.push_back(point3f);
+            
+           
+  
+        //获取每个大矩形的三维坐标点
+        //Points3d = point_3d();
+        solvePnP(Points3d,point2d, cameraMatrix, distCoeffs, rvec, tvec, false, SOLVEPNP_ITERATIVE);
+        //显示距离
+        string d = to_string(tvec.at<double>(2, 0)) + "cm";
+        //第一个参数为待绘制的图像，第二个参数为待绘制的文字，第三个参数为文本框的左下角
+        //第四个参数为字体，第五个参数为字体大小，第六个参数为字体颜色
+        putText(frame, d, point2d[2], 2, 1, Scalar(18, 195, 127));
+
+
+        
         imshow("video", frame);
         if (waitKey(10) >= 0) {
             break;
