@@ -13,7 +13,6 @@ const int kThreashold = 220;
 const int kMaxVal = 255;
 const Size kGaussianBlueSize = Size(5, 5);
 
-
 int main()
 {
     Mat frame,channels[3],binary,Gaussian;
@@ -152,7 +151,6 @@ int main()
         double r32 = RoteM.ptr<double>(2)[1];
         double r33 = RoteM.ptr<double>(2)[2];
         TransM = tvec;*/
-
         //将旋转矩阵按zxy顺规解出欧拉角
         //万向节死锁将出现在pitch轴正负90°(一般不会发生)
         /*double thetaz = atan2(-r12, r22) / CV_PI * 180;
@@ -168,7 +166,6 @@ int main()
         //cout << "Translation Vector: " << endl << tvec << endl;
         //第一个参数为待绘制的图像，第二个参数为待绘制的文字，第三个参数为文本框的左下角
         //第四个参数为字体，第五个参数为字体大小，第六个参数为字体颜色
-
         solvePnP(Points3d, point2d, cameraMatrix, distCoeffs, _rVec, _tVec, false, SOLVEPNP_ITERATIVE);
         //string dis = to_string(_tVec.at<double>(2, 0)) + "cm";
 		_tVec.at<double>(1, 0) -= Y_DISTANCE_BETWEEN_GUN_AND_CAM;
@@ -186,13 +183,11 @@ int main()
         string x_pitch0 = to_string(atan(gun_pitch_tan) / CV_PI * 180) ;
         float compensateGravity_pitch_tan = tan(x_pitch/180*CV_PI) + (0.5*9.8*(_euclideanDistance / BULLET_SPEED)*(_euclideanDistance / BULLET_SPEED)) / cos(x_pitch/180*CV_PI);
         x_pitch = atan(compensateGravity_pitch_tan)/CV_PI*180;
-
         string dis = to_string(_euclideanDistance) ;
         string x_pitch1 = to_string(x_pitch) ;
-        //cout << "pitch=" << ang << endl;
-            
+        //cout << "pitch=" << ang << endl;      
         putText(frame, dis, point2d[2], 2, 1, Scalar(18, 195, 127));
-        putText(frame,"x_pitch0="+ x_pitch0,point2d[1],2,1,Scalar(18, 195, 127));
+        //putText(frame,"x_pitch0="+ x_pitch0,point2d[1],2,1,Scalar(18, 195, 127));
         putText(frame,"x_pitch1="+ x_pitch1,point2d[3],2,1,Scalar(225, 0, 0));
         
         imshow("video", frame);
