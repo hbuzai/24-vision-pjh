@@ -58,7 +58,7 @@ int main()
             //rectangle(frame, boundRect.tl(), boundRect.br(), (0, 255, 0), 2,8 ,0);
             try
             {
-                if (double(boundRect.height / boundRect.width) >= 1.0 && boundRect.height > 36 && boundRect.height>20) {
+                if (double(boundRect.height / boundRect.width) >= 2.0 && boundRect.height > 36 && boundRect.height>15 &&boundRect.height<55) {
                     point_array[index] = boundRect;
                     index++;
                 }
@@ -73,17 +73,33 @@ int main()
         int min = 10000;
         for (int i = 0; i < index-1; i++)
         {
-            for (int j = i + 1; j < index; j++) {
+            for (int j = i+1 ; j < index; j++) {
                 int value = abs(point_array[i].area() - point_array[j].area());
-                if (value < min)
-                {
-                    min = value;
+                int dist = abs(point_array[i].tl().x-point_array[j].tl().x);
+                if (value < 20&& dist < 95)
+                {   
                     point_near[0] = i;
                     point_near[1] = j;
+                    Rect rectangle_1 = point_array[point_near[0]];
+                    Rect rectangle_2 = point_array[point_near[1]];
+                if (rectangle_2.x == 0 || rectangle_1.x == 0) {
+                    throw "not enough points";
+                }
+                Point point1 = Point(rectangle_1.x + rectangle_1.width / 2, rectangle_1.y);
+                Point point2 = Point(rectangle_1.x + rectangle_1.width / 2, rectangle_1.y + rectangle_1.height);
+                Point point3 = Point(rectangle_2.x + rectangle_2.width / 2, rectangle_2.y);
+                Point point4 = Point(rectangle_2.x + rectangle_2.width / 2, rectangle_2.y + rectangle_2.height);
+                Point p[4] = { point1,point2,point4,point3 };
+                cout << p[0]<<p[1]<<p[2]<<p[3] << endl;
+                for (int i = 0; i < 4; i++) {
+                    line(frame, p[i%4], p[(i+1)%4], Scalar(0, 255, 0), 2);
+                }      
+                line(frame,p[0],p[2],Scalar(255,0,0),1);
+                line(frame,p[1],p[3],Scalar(255,0,0),1);
                 }
             }
         }   
-        try
+        /*try
         {
             Rect rectangle_1 = point_array[point_near[0]];
             Rect rectangle_2 = point_array[point_near[1]];
@@ -106,7 +122,7 @@ int main()
         {
             cout << msg << endl;
             //continue;
-        }
+        }*/
 
         /*imshow("video", frame);
         if (waitKey(10) >= 0) {
