@@ -7,8 +7,8 @@
 #include "opencv2/video/tracking.hpp"
 using namespace std;
 using namespace cv;
-/**
-     * 计算点pt1,点pt2,与点pt0所形成的夹角的角度
+
+/*** 计算点pt1,点pt2,与点pt0所形成的夹角的角度
      * @param pt1 点1
      * @param pt2 点2
      * @param pt0 点0
@@ -22,41 +22,31 @@ using namespace cv;
         float angle_line = (dx1 * dx2 + dy1 * dy2) / sqrtf((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10f);
         return acosf(angle_line) * 180.0f / 3.141592653f;
     }
-      /**
-     * 圆周率
-     */
+/** * 圆周率
+    */
     static float PI_F() {
         return float(CV_PI);
     }
 
-    /**
-     * 圆周率
-     */
+/*** 圆周率
+    */
     static double PI() {
         return CV_PI;
     }
-        /**
-     * 角度转弧度
-     * @param p 角度值
-     * @return 弧度值
-     */
+/*** 角度转弧度
+    * @param p 角度值
+    * @return 弧度值
+    */
     static double angleToRadian(double p) {
         return p * PI() / 180.0f;
     }
-        /**
-     * 弧度转角度
-     * @param p 弧度值
-     * @return 角度值
-     */
+/*** 弧度转角度
+   * @param p 弧度值
+   * @return 角度值
+   */
     static inline float radianToAngle(float p) {
         return p * 180.0f / PI_F();
     }
-//计算相对窗口的坐标值，因为坐标原点在左上角，所以sin前有个负号
-static inline Point calcPoint(Point2f p2, double R, double angle)
-{
-                return p2 + Point2f((float)cos(angle), (float)-sin(angle))*(float)R;
-}
-
 void drawRotatedRect(Mat &frame, const RotatedRect &rect, const Scalar &color, int thickness)
 {
     Point2f Vertex[4];
@@ -74,12 +64,12 @@ double distance(Point2f a,Point2f b)
 int main(){
 
     Mat frame,bin,pre,pre1;
-    //Mat hsvImage,HsvImage;
     vector<Mat> channels;
     Point2f p2;
 
     VideoCapture video;
     video.open("/home/ladistra/24-vision-pjh/123/avi/rune-detect.avi");
+
     for(;;){
         Point2f point_array[10];
 
@@ -139,24 +129,15 @@ int main(){
                     if(minrect.size.area() > 100 && minrect.size.area() < 500 && minrect.center.y > 500 &&minrect.center.y < 520 && minrect.center.x > 680&&minrect.center.x <700 ){ // find R
                         if(height / width > 0.85){
                             r_min_rects.push_back(minrect);
-                            //Rect minRect = boundingRect(contours[i]);
-                            //circle(frame,minRect.center,15,Scalar(5,255,255));
-                            //circle(frame,minrect.center,15,Scalar(5,255,255));
-                            //cout << minrect.center<<endl;
                             p2 = minrect.center;
                             }
                     } 
-                    else {
-                            if(minrect.size.area() > 300 && minrect.size.area() < 4350 && (height / width) < 0.7) {
-                                armor_min_rects.push_back(minrect);
-                                }     
-                         }
                 }   
             }
         }
-       /*找到轮廓*/
+        //再次处理图片以找到未激活扇叶的轮廓
         Mat element = getStructuringElement(MORPH_RECT,Size(9,9));
-        dilate(pre1,pre,element);
+        dilate(pre1,pre,element); //膨胀使轮廓连接起来
 
         vector<vector<Point>> contours2;
         vector<Vec4i> hierarchies2;
@@ -165,7 +146,6 @@ int main(){
 	    double maxArea = -1;
 	    int maxId;
         Point2f rectMid;
-       
         for (int i = 0; i < contours2.size(); i++) {
             double area = contourArea(contours2[i]);
             if (area < 5000 || area>10000)/*面积排除噪声*/
@@ -200,7 +180,6 @@ int main(){
             //cout << p2 << endl;
             //cout << R << endl;
             //circle(frame,p2,R*1.123,Scalar(255,0,255),1,8,0);
-
             Point2f target;/*目标点*/
             double multiple = 1.123;/*倍率，换算目标点所用*/
             /*第一象限*/
@@ -222,21 +201,23 @@ int main(){
             circle(frame, target, 4, Scalar(0, 255, 0), -1, 8, 0);
             //circle(frame, p2, 3, Scalar(0, 255, 255), -1, 8, 0);
             line(frame,target,p2,Scalar(0,255,0),1);
+
+            //预测开始
                 float resAngle = 0.0f;
                 float _circleAngle360=0.0f;
                 vector<float> _buffAngleList;
-                float r = 0.0f;
+                //float r = 0.0f;
                 cv::Point2f _predictCoordinate;
-                static float lastCircleAngle = 0.0f;
-                static cv::Point2f lastTargetRectCenter = cv::Point2f(0.0f, 0.0f);
-                static float circleAngleBias = 0.0f;
+                //static float lastCircleAngle = 0.0f;
+                //static cv::Point2f lastTargetRectCenter = cv::Point2f(0.0f, 0.0f);
+                //static float circleAngleBias = 0.0f;
                 static double addAngle=0.0f;
                 //circleAngleBias = _circleAngle360 - lastCircleAngle;
                 //定义静态过去和现在角度；
                 static double nowAngle = 0.0f;
                 static double lastAngle = 0.0f;
                 static double deltaAngle;
-                static double lastRotateSpeed = 0.0f;
+                //static double lastRotateSpeed = 0.0f;
                 static double nowRotateSpeed = 0.0f;
                 //定义过去和现在时间；
                 static double lastTime = (double) cv::getTickCount() / cv::getTickFrequency() * 1000; // ms
@@ -244,7 +225,7 @@ int main(){
                 //cout << lastTime <<endl;
                 float _circleAngle180 = getAngle(target, cv::Point2f(3000.0f, p2.y), p2);
                 //cout << "1=" <<_circleAngle180<<endl;
-                //旋转角度处理
+                //旋转角度处理，显示离设定的轴正向的夹角，即转角；
                 if (p2.y < target.y) {
                     _circleAngle360 = 360.0f - _circleAngle180;
                     _circleAngle180 = -_circleAngle180;
@@ -253,65 +234,29 @@ int main(){
                 }
                 _buffAngleList.push_back(_circleAngle360);
                 //cout << "2=" <<_circleAngle360<<endl;
-                //circleAngleBias = _circleAngle360 - lastCircleAngle;
-                uint8_t count = 0;
                     for(int i=0;i<_buffAngleList.size();i++){
                         lastAngle = _buffAngleList[i];
                         nowAngle = _buffAngleList[i+3];
-                        //deltaAngle = 1000*fabs((nowAngle - lastAngle)* (1000.0f / (curTime - lastTime)));
-                        //cout << "4="<<deltaAngle<<endl;
-                        cout<< nowAngle-lastAngle <<endl;
                         //计算实时角速度
                         nowRotateSpeed = (float) fabs(angleToRadian((nowAngle - lastAngle)) * (1000.0f / (curTime - lastTime)));
-                        resAngle = 1000*radianToAngle(nowRotateSpeed);
-                        cout << "3="<<resAngle<<endl;
+                        resAngle = 1000*radianToAngle(nowRotateSpeed);//一帧1s；
+                        //cout << "3="<<resAngle<<endl;
                         Mat rot_mat2=getRotationMatrix2D(target,resAngle,1);
-                        float sinA=rot_mat2.at<double>(0,1);
-                        //sin(30);    
-                        float cosA=rot_mat2.at<double>(0,0);
-                        //cos(30);    
+                        float sinB=rot_mat2.at<double>(0,1);    
+                        float cosB=rot_mat2.at<double>(0,0);   
                         float xx=-(p2.x-target.x);
                         float yy=-(p2.y-target.y);
-                        Point2f _predictCoordinate=Point2f(p2.x+cosA*xx-sinA*yy,p2.y+sinA*xx+cosA*yy); 
-                        //_predictCoordinate.x = target.x +  r*cosf(resAngle * PI_F() / 180.0f);
-                        //_predictCoordinate.y = target.y +  r* sinf(resAngle * PI_F() / 180.0f);
+                        Point2f _predictCoordinate=Point2f(p2.x+cosB*xx-sinB*yy,p2.y+sinB*xx+cosB*yy); 
                         circle(frame, _predictCoordinate, 4, Scalar(255, 255, 255), -1, 8, 0);
-                        cout<<"9=" << _predictCoordinate <<endl;
+                        //cout<<"9=" << _predictCoordinate <<endl;
                         line(frame,_predictCoordinate,p2,Scalar(255,255,255),1); 
-
-
                     }
-                     
-                    
-                //过去角度和时间更新
-                //lastAngle = nowAngle;
-                //lastTime = curTime;
-                //如果过去角速度已被清零，则对过去速度进行更新
-                /*if (lastRotateSpeed == 0.0f) {
-                    lastRotateSpeed = nowRotateSpeed;
-                }
-                static double realRotateSpeed = nowRotateSpeed;
-                cout << "3="<<realRotateSpeed<<endl;
-                        }
-
-                }*/
-                
-            vector<Point2f> cirV;
-            //在得到装甲板中心点后将其放入缓存队列中
-            //用于拟合圆，用30个点拟合圆
-            if(cirV.size()<30)
-            {    cirV.push_back(p2);}
-            else{  
-            cirV.erase(cirV.begin());}
             //将打击点围绕圆心旋转某一角度得到预测的打击点
             if(p2.x!=0&&p2.y!=0){
-                for(int j=1;j<5;j++){
-                    //得到旋转一定角度(这里是30度)后点的位置    
+                for(int j=1;j<5;j++){  
                 Mat rot_mat=getRotationMatrix2D(p2,72*j,1);
-                float sinA=rot_mat.at<double>(0,1);
-                //sin(30);    
-                float cosA=rot_mat.at<double>(0,0);
-                //cos(30);    
+                float sinA=rot_mat.at<double>(0,1);  
+                float cosA=rot_mat.at<double>(0,0);    
                 float xx=-(p2.x-target.x)*0.95;
                 float yy=-(p2.y-target.y);
                 Point2f resPoint=Point2f(p2.x+cosA*xx-sinA*yy,p2.y+sinA*xx+cosA*yy); 
