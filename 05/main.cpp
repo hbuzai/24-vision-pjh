@@ -201,7 +201,6 @@ int main()
         float gun_pitch_tan = gun_target_height / (_euclideanDistance * cos(x_pitch / 180 * CV_PI));
         x_pitch = atan(gun_pitch_tan) / CV_PI * 180;
         string x_pitch0 = to_string(atan(gun_pitch_tan) / CV_PI * 180) ;
-
         float compensateGravity_pitch_tan = tan(x_pitch/180*CV_PI) + (0.5*9.8*(_euclideanDistance / BULLET_SPEED)*(_euclideanDistance / BULLET_SPEED)) / cos(x_pitch/180*CV_PI);
         x_pitch = atan(compensateGravity_pitch_tan)/CV_PI*180;
         string dis = to_string(_euclideanDistance) ;
